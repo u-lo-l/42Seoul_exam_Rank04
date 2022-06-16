@@ -6,8 +6,6 @@ void	do_cd(t_args *arg)
 		exit_cd_arg();
 	else if (chdir(arg->argv[1]) == -1)
 		exit_cd_bad(arg->argv[1]);
-	printf("\033[32mcd result : %s\033[0m\n", getcwd(NULL, 0));
-	exit(0);
 }
 // 하....파이프.....
 int		do_pipe(t_args *arg, int read_fd)
@@ -24,13 +22,19 @@ int		do_pipe(t_args *arg, int read_fd)
 	else if (pid == 0)
 	{
 		close(pipe_fd[0]);
-		dup2(read_fd, STDIN_FILENO);
-		close(read_fd);
+		if (read_fd != STDIN_FILENO)
+		{
+			dup2(read_fd, STDIN_FILENO);
+			close(read_fd);
+		}
 		if (arg->next != NULL)
 			dup2(pipe_fd[1], STDOUT_FILENO);
 		close(pipe_fd[1]);
 		if (strcmp(arg->argv[0], "cd") == 0)
+		{
 			do_cd(arg);
+			exit(0);
+		}
 		else if (execve(arg->argv[0], arg->argv, NULL) < 0)
 			exit_execve(arg->argv[0]);
 	}
@@ -47,14 +51,10 @@ void 	execute_lst(t_arglst *lst)
 {
 	t_args	*curr;
 	int		read_fd;
-	dprintf(2, "\033[34mtoklst\033[0m\n");
 	curr = lst->head;
 	read_fd = STDIN_FILENO;
 	if (lst->count == 1 && !strcmp(curr->argv[0], "cd"))
-	{
-		dprintf(2, "no pipe cd\n");
 		do_cd(curr);
-	}
 	else
 	{
 		while (curr)
@@ -62,16 +62,15 @@ void 	execute_lst(t_arglst *lst)
 			read_fd = do_pipe(curr, read_fd);
 			curr = curr->next;
 		}	
+		dup2(read_fd, 0);
+		close(read_fd);
 	}
-	dup2(read_fd, 0);
-	close(read_fd);
 }
 // ;로 구분된 명령어 한 줄을 실행한다.(파이프가 포함될 수 있다.)
 void	execute_commands(t_tree *tree)
 {
 	t_arglst *curr = tree->head;
 	int		read_fd = 0;
-	dprintf(2, "\033[1;33mwhole cmd\033[0m\n");
 	while (curr)
 	{
 		execute_lst(curr);

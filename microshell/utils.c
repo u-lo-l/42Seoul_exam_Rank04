@@ -24,7 +24,7 @@ t_args	*create_args(char **argv, int size)
 {
 	t_args	*new = malloc(sizeof(t_args));
 	if (!new)	exit_fatal();
-	new->argv = malloc(sizeof(char *) * size + 1);
+	new->argv = malloc(sizeof(char *) * (size + 1));
 	if (new->argv == NULL)	exit_fatal();
 	new->pipe = 0;
 	new->next = NULL;
@@ -38,7 +38,7 @@ t_args	*create_args(char **argv, int size)
 
 void	free_args(t_args *arg)
 {
-	if (!arg)
+	if (arg)
 	{
 		int i = 0;
 		while (arg->argv[i])
@@ -46,6 +46,7 @@ void	free_args(t_args *arg)
 			free(arg->argv[i]);
 			i++;
 		}
+		free(arg->argv);
 	}
 	free (arg);
 }

@@ -7,7 +7,7 @@ int main(int argc, char **argv)
 	if (argc < 2)
 		return (0);
 	tree = parse_args(argv + 1);
-	print_tree(tree);
 	execute_commands(tree);
 	free_tree(tree);
+	return (0);
 }
