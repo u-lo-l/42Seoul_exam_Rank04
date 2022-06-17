@@ -1,5 +1,19 @@
-//EXECITE
+//EXECUTE
 #include "microshell.h"
+
+void	do_single_cd(t_node *node)
+{
+	if (!node)
+		ft_putstr_fd(2, "error: fatal\n");
+	else if (node->size != 2)
+		ft_putstr_fd(2, "error: cd: bad arguments\n");
+	else if (chdir(node->argv[1]) == -1)
+	{
+		ft_putstr_fd(2, "error: cd: cannot change directory to");
+		ft_putstr_fd(2, node->argv[1]);
+		ft_putstr_fd(2, "\n");
+	}
+}
 
 void	do_cd(t_node *node)
 {
@@ -26,6 +40,7 @@ int		do_pipe(t_node *node, int read_fd, char **envp)
 		if (node->next != NULL)
 			dup2(pipe_fd[1], STDOUT_FILENO);
 		close(pipe_fd[1]);
+		// execute
 		if (!strcmp(node->argv[0], "cd"))
 		{
 			do_cd(node);
@@ -41,6 +56,10 @@ int		do_pipe(t_node *node, int read_fd, char **envp)
 	{
 		int status;
 		close(pipe_fd[1]);
+		// 여기서도 read_fd를 닫아줘야 fd 누수가 발생하지 않는다.
+		if (read_fd != STDIN_FILENO)
+			close(read_fd);
+		// 병렬 처리 하지 않아도 통과 된다.
 		waitpid(pid, &status, 0);
 	}
 	return (pipe_fd[0]);
@@ -53,8 +72,12 @@ void	execute_lst(t_lst *lst, char **envp)
 {
 	t_node	*curr = lst->head;
 	int		read_fd = STDIN_FILENO;
+
+	// 파이프로 연결되지 않는 cd의 경우 error발생 시 error메세지와 함께
+	// exit되어버리는 일이 발생하여 single_cd라는 함수를 만들었다.
+	// single_cd는 fork되지 않기 때문에 exit하면 안 된다.
 	if (lst->size == 1 && !strcmp(curr->argv[0], "cd"))
-		do_cd(curr);
+		do_single_cd(curr);
 	else
 	{
 		while (curr)
