@@ -41,7 +41,8 @@ int		do_pipe(t_args *arg, int read_fd)
 	else
 	{
 		close(pipe_fd[1]);
-		waitpid(pid, &status, 0);
+		if (arg->next == NULL)
+			waitpid(pid, &status, 0);
 	}
 	return (pipe_fd[0]);
 }
