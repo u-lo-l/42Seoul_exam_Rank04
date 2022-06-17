@@ -26,7 +26,6 @@ t_args	*create_args(char **argv, int size)
 	if (!new)	exit_fatal();
 	new->argv = malloc(sizeof(char *) * (size + 1));
 	if (new->argv == NULL)	exit_fatal();
-	new->pipe = 0;
 	new->next = NULL;
 	new->size = size;
 	int i = 0;

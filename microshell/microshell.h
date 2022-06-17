@@ -10,15 +10,12 @@ typedef struct args
 {
 	char		**argv;
 	int			size;
-	int			pipe;
-	int			fd[2];
 	struct args *next;
 }	t_args;
 
 typedef struct arglst
 {
 	int				count;
-	int				fd[2];
 	t_args			*head;
 	t_args			*tail;
 	struct arglst	*next;
